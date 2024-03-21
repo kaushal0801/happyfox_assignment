@@ -1,4 +1,4 @@
-# happyfox_assignment
+# Happyfox_assignment
 
 Step 1:
 Configure Google console for getting credentials.json file for "OAuth 2.0 Client IDs"
@@ -15,44 +15,45 @@ https://console.developers.google.com/apis/api/gmail.googleapis.com/overview?pro
 
 Step3:
 
-create virtual env:
+Create virtual env:
 python3 -m venv test_env
 
-activate virutal env:
+Activate virutal env:
 pip3 install virtualenv
 virtualenv test_env
 . test_env/bin/activate
 
-install pip3:
+Install pip3:
 sudo apt install python3-pip
 
-install google client using pip:
+Install google client using pip:
 pip3 install google-api-python-client
 
-install google oauth client using pip:
+Install google oauth client using pip:
 pip3 install oauth2client
 sudo pip3 install google-auth-oauthlib
 pip3 install google-auth-oauthlib
 
-install sqlite:
+Install sqlite:
 sudo apt install sqlite3 
 
-check sqlite version:
+Check sqlite version:
 sqlite3 --version
 
 Query for manually creating a table:
 CREATE TABLE IF NOT EXISTS test(id TEXT PRIMARY KEY, sample TEXT);
 
-connect with sqlite from cmd:
+Connect with sqlite from cmd:
 sqlite3 emails.db
 
-show tables:
+Show tables:
 .tables
 
 
 Generate Token:
 authenticate function will generate token and create a file in folder, after token is expired, we need to generate it again by deleting previous file.
-Error: "Authorized user info was not in the expected format, missing fields refresh_token."
+Error when token is expired: "Authorized user info was not in the expected format, missing fields refresh_token."
+Note: We have different scope for both scripts. For executing rules, I have used modify scope.
 
 File for authentication, fetching emails and storing:
 assignment.py
