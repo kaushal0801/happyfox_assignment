@@ -123,7 +123,6 @@ def process_emails(rules,service):
 def main():
     creds = authenticate()
     service = build('gmail', 'v1', credentials=creds)
-    import pdb;pdb.set_trace()
     with open('rules.json', 'r') as f:
         rules = json.load(f)
     
