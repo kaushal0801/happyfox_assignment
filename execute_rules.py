@@ -1,23 +1,49 @@
+import os
 import json
+import base64
 import sqlite3
 from datetime import datetime
 from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.discovery import build
+
 
 
 def get_field_to_search_name(name):
+    import pdb;pdb.set_trace()
     if name == "From":
         return "from_email"
     elif name == "To":
         return "to_email"
     elif name == "Subject":
         return "subject"
-    elif name == "Date Received":
+    elif name == "Date received":
         return "date_value"
     else:
         return "body"
 
-def get_emails_satisfying_conditions(cursor, conditions,top_filter_value):
+SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+
+def authenticate():
+    # Authentication of gmail API
+    creds = None
+    if os.path.exists('token.json'):
+        creds = Credentials.from_authorized_user_file('token.json')
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+        with open('token.json', 'w') as token:
+            token.write(creds.to_json())
+    return creds
+
+def get_emails_satisfying_conditions(c, conditions,top_filter_value):
     """Retrieve emails satisfying all conditions."""
+    import pdb;pdb.set_trace()
     emails = []
     for condition in conditions:
         predicate = condition.get('predicate')
@@ -26,8 +52,8 @@ def get_emails_satisfying_conditions(cursor, conditions,top_filter_value):
 
         if predicate == 'contains':
             value = condition.get('value')
-            c.execute("SELECT * FROM emails WHERE ? LIKE ?", (filter_to_search,'%' + value + '%',))
-            current_emails = emails = c.fetchall()
+            c.execute("""SELECT * FROM emails WHERE %s LIKE %s"""%(filter_to_search,"'%s'" % str("%"+value+"%")))
+            current_emails  = c.fetchall()
             if emails:
                 emails = current_emails
             else:
@@ -38,8 +64,8 @@ def get_emails_satisfying_conditions(cursor, conditions,top_filter_value):
 
         if predicate == 'equals':
             value = condition.get('value')
-            c.execute("SELECT * FROM emails WHERE ? = ?", (filter_to_search,value,))
-            current_emails = emails = c.fetchall()
+            c.execute("""SELECT * FROM emails WHERE %s = %s"""%(filter_to_search,value,))
+            current_emails  = c.fetchall()
             if emails:
                 emails = current_emails
             else:
@@ -50,8 +76,8 @@ def get_emails_satisfying_conditions(cursor, conditions,top_filter_value):
 
         if predicate == 'not equals':
             value = condition.get('value')
-            c.execute("SELECT * FROM emails WHERE ? != ?", (filter_to_search,value,))
-            current_emails = emails = c.fetchall()
+            c.execute("""SELECT * FROM emails WHERE %s != %s"""%(filter_to_search,value,))
+            current_emails  = c.fetchall()
             if emails:
                 emails = current_emails
             else:
@@ -63,7 +89,7 @@ def get_emails_satisfying_conditions(cursor, conditions,top_filter_value):
         if predicate == 'is less than':
             value = condition.get('value')
             c.execute("""SELECT * FROM emails WHERE %s < DATETIME('now', '-%s day')"""%(filter_to_search,int(value),))
-            current_emails = emails = c.fetchall()
+            current_emails  = c.fetchall()
             if emails:
                 emails = current_emails
             else:
@@ -75,6 +101,7 @@ def get_emails_satisfying_conditions(cursor, conditions,top_filter_value):
     return emails if emails else []
 
 def execute_action(service, action, message_id):
+    import pdb;pdb.set_trace()
     """Execute action on email."""
     action_name = action.get("name")
     
@@ -91,21 +118,25 @@ def execute_action(service, action, message_id):
 
 
 def move_to_inbox(service, message_id):
+    import pdb;pdb.set_trace()
     """Move an email to the Inbox."""
     body = {'addLabelIds': ['INBOX']}
     service.users().messages().modify(userId='me', id=message_id, body=body).execute()
 
 def mark_as_read(service, message_id):
+    import pdb;pdb.set_trace()
     """Mark an email as read."""
     body = {'removeLabelIds': ['UNREAD']}
     service.users().messages().modify(userId='me', id=message_id, body=body).execute()
 
 def mark_as_unread(service, message_id):
+    import pdb;pdb.set_trace()
     body = {'removeLabelIds': ['READ']}
     service.users().messages().modify(userId='me', id=message_id, body=body).execute()
 
 
 def process_emails(rules,service):
+    import pdb;pdb.set_trace()
     """Process emails based on rules."""
     conn = sqlite3.connect('emails.db')
     c = conn.cursor()
@@ -123,6 +154,7 @@ def process_emails(rules,service):
 def main():
     creds = authenticate()
     service = build('gmail', 'v1', credentials=creds)
+    import pdb;pdb.set_trace()
     with open('rules.json', 'r') as f:
         rules = json.load(f)
     
