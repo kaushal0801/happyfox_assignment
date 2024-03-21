@@ -3,17 +3,17 @@
       "predicate" : ["All"],
       "criteria": [
                     {
-                      "name": "from",
+                      "name": "From",
                       "predicate":"contains",
                       "value": "hirist"
                     },
                     {
-                      "name": "subject",
+                      "name": "Subject",
                       "predicate":"contains",
                       "value": "Pluralsight"
                     },
                     {
-                      "name": "Date Received",
+                      "name": "Date received",
                       "predicate":"is less than",
                       "value": "2"
                     }
