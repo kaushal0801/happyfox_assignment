@@ -63,3 +63,6 @@ execute_rules.py
 
 Assumptions:
 We are handling input format against each filter we are applying. For example, "Date Received" will never contain a string value. This means, if there is "contains" in filter it will never be against "Date Received".
+
+Note:
+I have used personal email for this because of this reason not adding credentials.json in git 
