@@ -11,11 +11,6 @@
                       "name": "Subject",
                       "predicate":"contains",
                       "value": "Pluralsight"
-                    },
-                    {
-                      "name": "Date received",
-                      "predicate":"is less than",
-                      "value": "2"
                     }
                   ],
       "action": [
