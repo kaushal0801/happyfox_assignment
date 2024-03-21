@@ -11,7 +11,6 @@ from googleapiclient.discovery import build
 
 
 def get_field_to_search_name(name):
-    import pdb;pdb.set_trace()
     if name == "From":
         return "from_email"
     elif name == "To":
@@ -23,7 +22,7 @@ def get_field_to_search_name(name):
     else:
         return "body"
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
 def authenticate():
     # Authentication of gmail API
@@ -43,7 +42,7 @@ def authenticate():
 
 def get_emails_satisfying_conditions(c, conditions,top_filter_value):
     """Retrieve emails satisfying all conditions."""
-    import pdb;pdb.set_trace()
+    top_filter_value = top_filter_value[0]
     emails = []
     for condition in conditions:
         predicate = condition.get('predicate')
@@ -54,7 +53,7 @@ def get_emails_satisfying_conditions(c, conditions,top_filter_value):
             value = condition.get('value')
             c.execute("""SELECT * FROM emails WHERE %s LIKE %s"""%(filter_to_search,"'%s'" % str("%"+value+"%")))
             current_emails  = c.fetchall()
-            if emails:
+            if not emails:
                 emails = current_emails
             else:
                 if top_filter_value == "All":
@@ -66,7 +65,7 @@ def get_emails_satisfying_conditions(c, conditions,top_filter_value):
             value = condition.get('value')
             c.execute("""SELECT * FROM emails WHERE %s = %s"""%(filter_to_search,value,))
             current_emails  = c.fetchall()
-            if emails:
+            if not emails:
                 emails = current_emails
             else:
                 if top_filter_value == "All":
@@ -78,7 +77,7 @@ def get_emails_satisfying_conditions(c, conditions,top_filter_value):
             value = condition.get('value')
             c.execute("""SELECT * FROM emails WHERE %s != %s"""%(filter_to_search,value,))
             current_emails  = c.fetchall()
-            if emails:
+            if not emails:
                 emails = current_emails
             else:
                 if top_filter_value == "All":
@@ -90,7 +89,7 @@ def get_emails_satisfying_conditions(c, conditions,top_filter_value):
             value = condition.get('value')
             c.execute("""SELECT * FROM emails WHERE %s < DATETIME('now', '-%s day')"""%(filter_to_search,int(value),))
             current_emails  = c.fetchall()
-            if emails:
+            if not emails:
                 emails = current_emails
             else:
                 if top_filter_value == "All":
@@ -101,7 +100,6 @@ def get_emails_satisfying_conditions(c, conditions,top_filter_value):
     return emails if emails else []
 
 def execute_action(service, action, message_id):
-    import pdb;pdb.set_trace()
     """Execute action on email."""
     action_name = action.get("name")
     
@@ -118,25 +116,30 @@ def execute_action(service, action, message_id):
 
 
 def move_to_inbox(service, message_id):
-    import pdb;pdb.set_trace()
     """Move an email to the Inbox."""
-    body = {'addLabelIds': ['INBOX']}
-    service.users().messages().modify(userId='me', id=message_id, body=body).execute()
+    try:
+        body = {'addLabelIds': ['INBOX']}
+        service.users().messages().modify(userId='me', id=message_id, body=body).execute()
+    except:
+        pass
 
 def mark_as_read(service, message_id):
-    import pdb;pdb.set_trace()
-    """Mark an email as read."""
-    body = {'removeLabelIds': ['UNREAD']}
-    service.users().messages().modify(userId='me', id=message_id, body=body).execute()
+    try:
+        """Mark an email as read."""
+        body = {'removeLabelIds': ['UNREAD']}
+        service.users().messages().modify(userId='me', id=message_id, body=body).execute()
+    except:
+        pass
 
 def mark_as_unread(service, message_id):
-    import pdb;pdb.set_trace()
-    body = {'removeLabelIds': ['READ']}
-    service.users().messages().modify(userId='me', id=message_id, body=body).execute()
+    try:
+        body = {'removeLabelIds': ['READ']}
+        service.users().messages().modify(userId='me', id=message_id, body=body).execute()
+    except:
+        pass
 
 
 def process_emails(rules,service):
-    import pdb;pdb.set_trace()
     """Process emails based on rules."""
     conn = sqlite3.connect('emails.db')
     c = conn.cursor()
@@ -154,7 +157,6 @@ def process_emails(rules,service):
 def main():
     creds = authenticate()
     service = build('gmail', 'v1', credentials=creds)
-    import pdb;pdb.set_trace()
     with open('rules.json', 'r') as f:
         rules = json.load(f)
     
